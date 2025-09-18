@@ -35,6 +35,19 @@ A comprehensive e-commerce API built with Node.js and Express.js, implementing c
 - ✅ View individual order details
 - ✅ Automatic stock deduction on successful payment
 
+### Admin Features
+- ✅ Admin order management (list all orders)
+- ✅ Update order status (pending, shipped, delivered)
+- ✅ Order statistics and analytics
+- ✅ Role-based access control for admin routes
+
+### Security Enhancements
+- ✅ Helmet for HTTP security headers
+- ✅ Rate limiting on authentication routes
+- ✅ Input sanitization against XSS and NoSQL injection
+- ✅ Advanced Joi validation for all inputs
+- ✅ CORS configuration for production
+
 ## 🛠️ Technologies Used
 
 - **Node.js** - Runtime environment
@@ -43,7 +56,11 @@ A comprehensive e-commerce API built with Node.js and Express.js, implementing c
 - **Mongoose** - ODM for MongoDB
 - **JWT** - Authentication tokens
 - **bcryptjs** - Password hashing
-- **express-validator** - Input validation
+- **Joi** - Advanced input validation
+- **Helmet** - HTTP security headers
+- **express-rate-limit** - Rate limiting
+- **express-mongo-sanitize** - NoSQL injection prevention
+- **xss** - XSS protection
 - **CORS** - Cross-origin resource sharing
 
 ## 📁 Project Structure
@@ -124,6 +141,40 @@ npm run dev
 The server will start on `http://localhost:3000`
 
 ## 📚 API Endpoints Documentation
+
+### Complete API Endpoints Table
+
+| Method | Endpoint | Description | Auth Required | Role Required |
+|--------|----------|-------------|---------------|---------------|
+| **Authentication** |
+| POST | `/api/auth/signup` | Register new user | No | - |
+| POST | `/api/auth/login` | User login | No | - |
+| GET | `/api/auth/me` | Get current user | Yes | Any |
+| **Products** |
+| GET | `/api/products` | Get all products | No | - |
+| GET | `/api/products/:id` | Get single product | No | - |
+| POST | `/api/products` | Create product | Yes | Customer/Admin |
+| PATCH | `/api/products/:id` | Update product | Yes | Customer/Admin |
+| DELETE | `/api/products/:id` | Delete product | Yes | Customer/Admin |
+| **Cart** |
+| GET | `/api/cart` | Get user's cart | Yes | Customer |
+| POST | `/api/cart/add` | Add item to cart | Yes | Customer |
+| PATCH | `/api/cart/update/:id` | Update cart item | Yes | Customer |
+| DELETE | `/api/cart/remove/:id` | Remove from cart | Yes | Customer |
+| DELETE | `/api/cart/clear` | Clear cart | Yes | Customer |
+| **Orders** |
+| GET | `/api/orders` | Get user's orders | Yes | Customer |
+| GET | `/api/orders/:id` | Get single order | Yes | Customer |
+| POST | `/api/orders/checkout` | Create order | Yes | Customer |
+| PATCH | `/api/orders/:id/status` | Update order status | Yes | Admin |
+| **Admin** |
+| GET | `/api/admin/orders` | Get all orders | Yes | Admin |
+| PATCH | `/api/admin/orders/:id/status` | Update order status | Yes | Admin |
+| GET | `/api/admin/orders/stats` | Get order statistics | Yes | Admin |
+| **System** |
+| GET | `/api/health` | Health check | No | - |
+
+## 📚 Detailed API Documentation
 
 ### Authentication Endpoints
 
@@ -285,6 +336,58 @@ GET /api/orders/:id
 Authorization: Bearer <token>
 ```
 
+### Admin Endpoints
+
+#### Get All Orders (Admin Only)
+```http
+GET /api/admin/orders?page=1&limit=10&status=confirmed&sortBy=createdAt&sortOrder=desc
+Authorization: Bearer <admin_token>
+```
+
+#### Update Order Status (Admin Only)
+```http
+PATCH /api/admin/orders/:id/status
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "status": "shipped"
+}
+```
+
+#### Get Order Statistics (Admin Only)
+```http
+GET /api/admin/orders/stats?period=30
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+```json
+{
+  "period": "30 days",
+  "startDate": "2024-01-01T00:00:00.000Z",
+  "endDate": "2024-01-31T23:59:59.999Z",
+  "statistics": {
+    "totalOrders": 150,
+    "totalRevenue": 45000.50,
+    "averageOrderValue": 300.00,
+    "statusBreakdown": {
+      "pending": 10,
+      "confirmed": 25,
+      "shipped": 40,
+      "delivered": 70,
+      "cancelled": 5
+    },
+    "paymentStatusBreakdown": {
+      "pending": 5,
+      "paid": 140,
+      "failed": 3,
+      "refunded": 2
+    }
+  }
+}
+```
+
 ## 🔐 Authentication
 
 The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
@@ -292,6 +395,29 @@ The API uses JWT (JSON Web Tokens) for authentication. Include the token in the 
 ```http
 Authorization: Bearer <your_jwt_token>
 ```
+
+## 🛡️ Security Features
+
+### Rate Limiting
+- **Authentication routes**: 5 requests per 15 minutes per IP
+- **General API**: 100 requests per 15 minutes per IP
+- **Headers**: Rate limit information included in response headers
+
+### Input Validation & Sanitization
+- **Joi validation**: Comprehensive validation for all inputs
+- **XSS protection**: All string inputs sanitized against XSS attacks
+- **NoSQL injection prevention**: MongoDB query injection protection
+- **Data sanitization**: Recursive sanitization of all request data
+
+### HTTP Security Headers
+- **Helmet.js**: Comprehensive HTTP security headers
+- **Content Security Policy**: XSS protection
+- **CORS**: Configurable cross-origin resource sharing
+
+### Role-Based Access Control
+- **Admin routes**: Protected with role-based middleware
+- **Customer routes**: User-specific data access
+- **JWT verification**: Token validation on protected routes
 
 ## 💳 Payment Simulation
 
@@ -385,7 +511,7 @@ NODE_ENV=production
 - Set up proper error logging
 - Use environment-specific configurations
 
-## 📝 Task 62A Completion Checklist
+## 📝  Completion Checklist
 
 - ✅ **User Authentication with JWT**: Signup, login, middleware
 - ✅ **Products CRUD**: All operations implemented
@@ -397,6 +523,15 @@ NODE_ENV=production
 - ✅ **Error Handling**: Proper error responses and logging
 - ✅ **Database Integration**: MongoDB with Mongoose ODM
 - ✅ **Security**: Password hashing, JWT authentication
+- ✅ **Admin Order Management**: GET /admin/orders, PATCH /admin/orders/:id/status
+- ✅ **Role-based Access Control**: roleCheck.js middleware for admin routes
+- ✅ **Joi Validation**: Advanced validation for Product and Cart inputs
+- ✅ **Security Enhancements**: Helmet, rate limiting, input sanitization
+- ✅ **Admin Statistics**: Order analytics and reporting
+- ✅ **Updated Documentation**: Complete API endpoints table and examples
+- ✅ **Security Headers**: Helmet configuration for HTTP security
+- ✅ **Rate Limiting**: Authentication and general API rate limits
+- ✅ **Input Sanitization**: XSS and NoSQL injection protection
 
 ## 👨‍💻 Author
 
